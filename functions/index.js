@@ -2,13 +2,15 @@ const express = require('express');
 https = require('https');
 const multer = require('multer'); 
 const cors = require('cors');
-const fs = require('fs');
+// const fs = require('fs');
 const pdf2table = require('pdf2table');
+const router = express.Router();
+const serverless = require('serverless-http');
 
 const app = express();
 app.use(cors());
 
-const PORT = process.env.PORT || 5000; 
+// const PORT = process.env.PORT || 5000; 
 
 // app.use('/', (req,res) => {
 //     res.status(200).send({message: 'Server running'});
@@ -17,9 +19,12 @@ const PORT = process.env.PORT || 5000;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-
+router.get('/', (req,res) => {
+    console.log('Server is Up ')
+    res.json({message: 'Server is Up'})
+})
 // POST route for uploading files
-app.post('/upload', upload.single('pdf'), async(req, res) => {
+router.post('/upload', upload.single('pdf'), async(req, res) => {
     const fileBuffer = req.file.buffer; // directly using buffer so that we don't need to store file in server to avoid risk
 
     if (!fileBuffer) {
@@ -54,4 +59,7 @@ app.post('/upload', upload.single('pdf'), async(req, res) => {
     
 });
 
-app.listen(PORT,() => {console.log(`Server is Up & Running on ${PORT}`)});
+app.use('/.netlify/functions/index', router);
+module.exports.handler = serverless(app);
+
+// app.listen(PORT,() => {console.log(`Server is Up & Running on ${PORT}`)});
